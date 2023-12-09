@@ -27,11 +27,11 @@ SecureCraft offers a versatile and modular approach to encrypting and decrypting
    git clone https://github.com/yourusername/securecraft.git
    cd securecraft
 
-2.Run the script with your desired options:
+2. Run the script with your desired options:
 
-    python securecraft.py -a encrypt -m classic -alg caesar -d "Your secret message"
+    python securecraft.py -a encrypt -m classic -alg caesar -d "Your message"
     
-    Adjust the options according to your encryption needs.
+ Adjust the options according to your encryption needs.
 
 
 ## Supported Algorithms
