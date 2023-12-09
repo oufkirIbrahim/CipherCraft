@@ -11,7 +11,7 @@ class Mode(Enum):
 class Algorithm(Enum):
     CAESAR = "caeser"
     MULTIPL = "multiplicative"
-    ALGORITHM3 = "algorithm3"
+    AFFINE = "affine"
     ALGORITHM4 = "algorithm4"
     ALGORITHM5 = "algorithm5"
     ALGORITHM6 = "algorithm6"
