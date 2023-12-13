@@ -1,7 +1,7 @@
 from enums import Algorithm,Mode
-from caesar import Caesar
-from multiplicative import MultiplicativeCipher
-from affine import AffineCipher
+from CipherCraft.classic.caesar import Caesar
+from CipherCraft.classic.multiplicative import MultiplicativeCipher
+from CipherCraft.classic.affine import AffineCipher
 class CryptoHandlerFactory:
     @staticmethod
     def create_handler(mode):
