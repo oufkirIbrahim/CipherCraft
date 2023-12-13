@@ -79,7 +79,7 @@ class AffineCipher:
                 # If the character is not an alphabet letter, leave it unchanged
                 ciphertext += char
 
-        print(ciphertext)
+        return ciphertext
 
     def decrypt(self, ciphertext):
         """
@@ -111,5 +111,5 @@ class AffineCipher:
                 # If the character is not an alphabet letter, leave it unchanged
                 plaintext += char
 
-        print(plaintext)
+        return plaintext
 

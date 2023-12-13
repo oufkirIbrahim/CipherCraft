@@ -1,5 +1,5 @@
 class MultiplicativeCipher:
-    def __init__(self,key):
+    def __init__(self, key):
         self.key = key
 
     def encrypt(self, plaintext):
@@ -21,8 +21,7 @@ class MultiplicativeCipher:
                 # If the character is not an alphabet letter, leave it unchanged
                 ciphertext += char
         
-        print(ciphertext)
-
+        return ciphertext
 
     def decrypt(self, ciphertext):
         plaintext = ""
@@ -44,5 +43,5 @@ class MultiplicativeCipher:
                 plaintext += decrypted_char
             else:
                 plaintext += char
-        
-        print(plaintext)
+
+        return plaintext
