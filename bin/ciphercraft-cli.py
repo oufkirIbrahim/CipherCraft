@@ -3,13 +3,34 @@ import sys
 import time
 import questionary
 from colorama import Fore, Style, init
-
-# Import the LogoHandler class
-from utils.Generators.logoHandler import LogoHandler
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from CipherCraft.utils.Generators.logoHandler import LogoHandler
 
 init(autoreset=True)
 
 class CLInterface:
+
+    actions = {
+        'select_action': {
+            'Classic': '',
+            'Modern': '',
+            'Exit': ''
+        },
+        'select_function': {
+            'Encrypt': '',
+            'Decrypt': '',
+        },
+        'select_classic': {
+            'Caesar': '',
+            'Affine': '',
+            'Vigenere': '',
+            'Multiplicative': ''
+        },
+        'select_modern': {
+            'AES':''
+        }
+    }
+
     def __init__(self):
         self.logo_handler = LogoHandler()
 
