@@ -1,4 +1,4 @@
-from enums import Algorithm,Mode
+from CipherCraft.utils.enums import Algorithm,Mode
 from CipherCraft.classic.caesar import Caesar
 from CipherCraft.classic.multiplicative import MultiplicativeCipher
 from CipherCraft.classic.affine import AffineCipher

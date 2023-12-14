@@ -1,6 +1,6 @@
 from argparse import ArgumentParser, Namespace
-from cryptoHandler import CryptoHandlerFactory
-from enums import Actions,Algorithm,Mode
+from CipherCraft.utils.cryptoHandler import CryptoHandlerFactory
+from CipherCraft.utils.enums import Actions,Algorithm,Mode
 
 
 def main():
