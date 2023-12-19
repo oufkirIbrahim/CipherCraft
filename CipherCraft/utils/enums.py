@@ -15,6 +15,6 @@ class Algorithm(Enum):
     CAESAR = "caesar"
     MULTIPLICATIVE = "multiplicative"
     AFFINE = "affine"
-    ALGORITHM4 = "algorithm4"
+    ALGORITHM4 = "permutation"
     ALGORITHM5 = "algorithm5"
     ALGORITHM6 = "algorithm6"
