@@ -7,7 +7,13 @@ from enum import Enum, auto
 class VisualEnums(Enum):
     @classmethod
     def choices(cls):
-        return [{'name': choice.name.replace('_', ' ').title(), 'value': choice.value} for choice in cls]
+        return [{'name': choice.__name__(), 'value': choice.value} for choice in cls]
+
+    def __cmp__(self, other):
+        return self.__name__() == other
+
+    def __name__(self):
+        return self.name.replace('_', ' ').title()
 
 
 class Actions(VisualEnums):
@@ -43,15 +49,21 @@ class Analyzing(VisualEnums):
 
 # DEFINE CLASSIC ALGORITHMS
 class ClassicAlgorithms(VisualEnums):
-    CAESAR = auto()
     AFFINE = auto()
-    VIGENERE = auto()
+    CAESAR = auto()
+    HILL = auto()
     MULTIPLICATIVE = auto()
+    PERMUTATION = auto()
+    TRANSPOSITION = auto()
+    VIGENERE = auto()
 
 
 # DEFINE MODERN ALGORITHMS
 class ModernAlgorithms(VisualEnums):
+    DES = auto()
     AES = auto()
+    RC4 = auto()
+    RSA = auto()
 
 
 # OUTPUTTING THE PLAIN/CIPHER TEXT

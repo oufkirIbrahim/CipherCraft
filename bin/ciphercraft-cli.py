@@ -1,7 +1,5 @@
-from enum import Enum, auto
 import os
 import sys
-import time
 import questionary
 from colorama import Fore, Style, init
 
@@ -9,6 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from CipherCraft.utils.Generators.logoHandler import LogoHandler
 import CipherCraft.utils.enums.preference as pr
 from CipherCraft.utils.filesHandler import FilesHandler
+from CipherCraft.utils.Runner import Runner
 
 
 class CLInterface:
@@ -16,6 +15,7 @@ class CLInterface:
     def __init__(self):
         self.logo_handler = LogoHandler()
         self.files_handler = FilesHandler()
+        self.runner = Runner()
         self.preference = {
             'action': None,
             'algorithm': None,
@@ -23,29 +23,29 @@ class CLInterface:
             'key_selection': {
                 'encryption': {
                     'call': None,
-                    pr.EncryptionKey.IMPORT_KEY.value: self.import_key,
-                    pr.EncryptionKey.INPUT_KEY.value: self.input_key,
-                    pr.EncryptionKey.GENERATE_RANDOM_KEY.value: self.generate_key,
+                    pr.EncryptionKey.IMPORT_KEY.__name__(): self.import_key,
+                    pr.EncryptionKey.INPUT_KEY.__name__(): self.input_key,
+                    pr.EncryptionKey.GENERATE_RANDOM_KEY.__name__(): self.generate_key,
                 },
                 'decryption': {
                     'call': None,
-                    pr.DecryptionKey.IMPORT_KEY.value: self.import_key,
-                    pr.DecryptionKey.INPUT_KEY.value: self.input_key,
-                    pr.DecryptionKey.WITHOUT_KEY.value: self.perform_cryptanalysis,
+                    pr.DecryptionKey.IMPORT_KEY.__name__(): self.import_key,
+                    pr.DecryptionKey.INPUT_KEY.__name__(): self.input_key,
+                    pr.DecryptionKey.WITHOUT_KEY.__name__(): self.perform_cryptanalysis,
                 },
             },
             'key': None,
             'cryptanalysis': None,
             'source_selection': {
                 'call': None,
-                pr.InputMethod.INPUT.value: self.get_source_stdin,
-                pr.InputMethod.IMPORT_FROM_FILE.value: self.get_source_file
+                pr.InputMethod.INPUT.__name__(): self.get_source_stdin,
+                pr.InputMethod.IMPORT_FROM_FILE.__name__(): self.get_source_file
             },
             "source": None,
             'dist_selection': {
                 'call': None,
-                pr.OutputMethod.PRINT_ONLY.value: self.print_dist_stdout,
-                pr.OutputMethod.SAVE_TO_FILE.value: self.print_dist_file
+                pr.OutputMethod.PRINT_ONLY.__name__(): self.print_dist_stdout,
+                pr.OutputMethod.SAVE_TO_FILE.__name__(): self.print_dist_file
             },
             "dist": None,
             "dist_path": None
@@ -65,7 +65,7 @@ class CLInterface:
         :param choices:
         :return: None
         """
-        return questionary.select(prompt, choices=choices).ask()
+        return questionary.select(prompt, choices=[_['name'] for _ in choices]).ask()
 
     def get_text_input(self, prompt):
         return questionary.text(prompt).ask()
@@ -117,7 +117,7 @@ class CLInterface:
         """
 
         # SELECT THE INPUT AND OUTPUT NAMING AND GET DATA SOURCE
-        if self.preference['operation'] == pr.Operations.ENCRYPT.value:
+        if pr.Operations.ENCRYPT.__cmp__(self.preference['operation']):
             self.stream_handler(p.InputMethod, 'source', 'plaintext')
             self.stream_actions('source')
             self.stream_handler(p.OutputMethod, 'dist', 'ciphertext', ' destination')
@@ -203,11 +203,11 @@ class CLInterface:
         """
 
         # CHECK IF THE USER HAS SELECTED TO PROCEED WITHOUT DECRYPTION KEY
-        if self.preference['key_selection']['decryption']['call'] == pr.DecryptionKey.WITHOUT_KEY.value:
+        if pr.DecryptionKey.WITHOUT_KEY.__cmp__(self.preference['key_selection']['decryption']['call']):
             # NOTHING TO DO
             return
         # SELECT THE KEY METHOD
-        if self.preference['operation'] == pr.Operations.ENCRYPT.value:
+        if pr.Operations.ENCRYPT.__cmp__(self.preference['operation']):
 
             # ENCRYPTION
             self.key_selection_handler(p.EncryptionKey, 'encryption')
@@ -295,7 +295,7 @@ class CLInterface:
         This Function Gets Source Data From STDIN
         :return:
         """
-        self.preference[source_type] = self.get_text_input(f"Source {source_type}:")
+        self.preference["source"] = self.get_text_input(f"Source {source_type}:")
         return
 
     def get_source_file(self):
@@ -379,30 +379,50 @@ class CLInterface:
             )
 
             # TESTING CHOICE
-            if self.preference['action'] == pr.Actions.EXIT.value:
+            if pr.Actions.EXIT.__cmp__(self.preference['action']):
 
                 # EXITING THE PROGRAM
                 sys.exit(0)
-            elif self.preference['action'] == pr.Actions.CLASSIC.value:
+            elif pr.Actions.CLASSIC.__cmp__(self.preference['action']):
 
                 # CHOOSE A CLASSIC ALGORITHM
                 self.classic_handler(pr)
-            elif self.preference['action'] == pr.Actions.MODERN.value:
+            elif pr.Actions.MODERN.__cmp__(self.preference['action']):
                 # CHOOSE A MODERN ALGORITHM
                 self.modern_handler(pr)
-            self.print_out_stream()
+
+            # PERFORM ACTIONS
+            self.run_app()
+
+    def run_app(self):
+        """This Function Runs The Actions"""
+        self.preference['dist'] = self.preference['dist'] = self.runner.run(
+            self.preference['action'],
+            self.preference['algorithm'],
+            self.preference['operation'],
+            self.preference['source'],
+            self.preference['key'])
+
+        self.print_out_stream()
+        return
 
     def print_out_stream(self):
+        init(autoreset=True)  # Initialize colorama
+
         self.print_logo()
         print("\n", Fore.GREEN + Style.BRIGHT + "Processing...")
-        print(Fore.CYAN + Style.BRIGHT + f"\nSelected Options:")
-        print(f"Operation: {self.preference}")
-        # Additional preferences can be retrieved and printed
 
+        print(Fore.CYAN + Style.BRIGHT + "\nSelected Options:")
+        print(f"{Fore.YELLOW + Style.BRIGHT}Action: {self.preference['action']}")
+        print(f"{Fore.YELLOW + Style.BRIGHT}Algorithm: {self.preference['algorithm']}")
+        print(f"{Fore.YELLOW + Style.BRIGHT}Operation: {self.preference['operation']}")
+        print(f"{Fore.YELLOW + Style.BRIGHT}Key: {self.preference['key']}")
+        print(f"{Fore.YELLOW + Style.BRIGHT}Input text: {self.preference['source']}")
+        print(f"{Fore.YELLOW + Style.BRIGHT}Output text: {self.preference['dist']}")
+        print(f"{Fore.YELLOW + Style.BRIGHT}Save path: {self.preference['dist_path']}")
         print("\n" + Fore.GREEN + Style.BRIGHT + "Process Completed!")
 
         input("\nPress Enter to continue...")
-        
 
 
 if __name__ == "__main__":

@@ -32,6 +32,7 @@ class LogoHandler:
 
                     # Add a sleep effect for visualization (50 milliseconds in this example)
                     time.sleep(0.05)
+                print()
 
         except Exception as e:
             # SOMETHING WENT WRONG
