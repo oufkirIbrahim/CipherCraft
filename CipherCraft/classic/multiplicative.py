@@ -1,6 +1,6 @@
 class MultiplicativeCipher:
     def __init__(self, key):
-        self.key = key
+        self.key = int(key)
 
     def encrypt(self, plaintext):
         ciphertext = ""

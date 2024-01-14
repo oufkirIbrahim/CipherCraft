@@ -1,21 +1,23 @@
 import numpy as np
 import sympy
+
+
 class HillCipher:
     def __init__(self, key):
         self.key = key
 
-    def pad_plain_text(self,plain_text):
+    def pad_plain_text(self, plain_text):
         # Pad the plain text if its length is not a multiple of the key matrix size
-            padding_length = len(self.key) - (len(plain_text) % len(self.key))
-            return plain_text + 'X' * padding_length
+        padding_length = len(self.key) - (len(plain_text) % len(self.key))
+        return plain_text + 'X' * padding_length
 
     def matrix_inverse_mod(self, modulus=26):
         M = sympy.Matrix(self.key)
         determinant = M.det() % 26  # huge intermediate results/crashes
         inverse = M.inv_mod(26)
         return inverse
-    def mainHill(self,plain_text):
 
+    def mainHill(self, plain_text):
 
         # Convert the plain text to uppercase
         plain_text = plain_text.upper()
@@ -50,22 +52,13 @@ class HillCipher:
 
         return cipher_text
 
-    def encrypt(self,plain_text):
+    def encrypt(self, plain_text):
         cipher_text = self.mainHill(plain_text)
         decrypt_key = np.array(self.matrix_inverse_mod())
-        return cipher_text,decrypt_key
+        print(f'cipher {cipher_text}')
+        print(f'key {decrypt_key}')
+        return cipher_text, decrypt_key
 
-    def decrypt(self,plain_text):
+    def decrypt(self, plain_text):
         cipher_text = self.mainHill(plain_text)
         return cipher_text
-
-# Example usage
-plain_text = 'je vous aime'
-key = np.array([[9, 4], [5, 7]])
-c = HillCipher(key)
-cipher_text, dec = c.encrypt(plain_text)
-print("Cipher Text:", cipher_text)
-print("dec key:", dec)
-c = HillCipher(dec)
-text = c.decrypt(cipher_text)
-print("plain Text:", text)

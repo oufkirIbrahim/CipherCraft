@@ -1,7 +1,7 @@
 
 class Caesar:
     def __init__(self, key):
-        self.key = key
+        self.key = int(key)
 
     def encrypt(self, data):
         result = ""
@@ -20,7 +20,6 @@ class Caesar:
                     result += chr((ord(char) + self.key - 97) % 26 + 97)
             else:
                 result += char
-
         return result
 
     def decrypt(self, data):
