@@ -1,20 +1,17 @@
 class AffineCipher:
-    def __init__(self, a, b, m=26):
+    def __init__(self, key, m=26):
         """
         Initialize the Affine Cipher with key parameters.
-
-        Parameters:
-        - a (int): Multiplicative key.
-        - b (int): Additive key.
-        - m (int): Modulus (default is 26 for the English alphabet).
+        :param key:
+        :param m:
         """
-        self.a = a
-        self.b = b
+        self.a = key[0]
+        self.b = key[1]
         self.m = m
 
-        # Check if 'a' and 'm' are coprime
-        if self.gcd(a, m) != 1:
-            raise ValueError("'a' and 'm' must be coprime for the affine cipher to work.")
+        # Check if 'a' and 'm' are comprime
+        if self.gcd(self.a, m) != 1:
+            raise ValueError("'a' and 'm' must be comprime for the affine cipher to work.")
 
     def gcd(self, a, b):
         """

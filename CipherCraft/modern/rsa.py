@@ -1,101 +1,165 @@
+import base64
+import os
 import random
 import math
+import sys
+from datetime import datetime
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+from CipherCraft.utils.Generators.bigPrimeGenerator import big_prime_generator
+from CipherCraft.utils.filesHandler import FilesHandler
+
 
 class RsaCipher:
-    def __init__(self, bits=1024, conf=0):
-        if conf != 0:
-            self.private_key = bits
-        else:
+    def __init__(self):
+        pass
+
+    class RsaGenerator:
+        def __init__(self, bits=1024):
             self.bits = bits
+            self.file_handler = FilesHandler()
             self.public_key, self.private_key = self.generate_keypair()
 
+            tmp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+            public_key, private_key = self.generate_pem_keypair()
+            self.file_handler.append_file(os.path.join(os.path.dirname(__file__),
+                                                       '..', '..', 'inventory', 'rsa',
+                                                       tmp + "rsa_pub.pem"
+                                                       ), public_key)
+            self.file_handler.append_file(os.path.join(os.path.dirname(__file__),
+                                                       '..', '..', 'inventory', 'rsa',
+                                                       tmp + "rsa_private.pem"
+                                                       ), private_key)
 
+        def generate_pem_keypair(self):
+            public_key = str(self.public_key[0]) + "@" + str(self.public_key[1])
+            private_key = str(self.private_key[0]) + "@" + str(self.private_key[1])
+            return _encode_to_pem(public_key.encode('utf8'), 'PUBLIC KEY'), _encode_to_pem(private_key.encode('utf8'),
+                                                                                           'PRIVATE KEY')
 
-    def generate_keypair(self):
-        p = self.generate_prime()
-        q = self.generate_prime()
+        def generate_keypair(self):
+            """Function To generate RSA key pairs"""
+            p = big_prime_generator(self.bits)
+            q = big_prime_generator(self.bits)
 
-        n = p * q
-        phi = (p - 1) * (q - 1)
+            n = p * q
+            phi = (p - 1) * (q - 1)
 
-        e = self.generate_coprime(phi)
-        d = self.mod_inverse(e, phi)
+            e = self.generate_coprime(phi)
+            d = self.mod_inverse(e, phi)
+            public_key = (n, e)
+            private_key = (n, d)
 
-        public_key = (n, e)
-        private_key = (n, d)
+            return public_key, private_key
 
-        return public_key, private_key
-
-    def generate_prime(self):
-        while True:
-            num = random.getrandbits(self.bits)
-            num |= (1 << self.bits - 1) | 1
-
-            if self.is_prime(num):
-                return num
-
-    def is_prime(self, num):
-        if num < 2:
-            return False
-        for i in range(2, math.isqrt(num) + 1):
-            if num % i == 0:
+        def is_prime(self, num):
+            if num < 2:
                 return False
-        return True
+            for i in range(2, math.isqrt(num) + 1):
+                if num % i == 0:
+                    return False
+            return True
 
-    def generate_coprime(self, phi):
-        e = random.randint(2, phi - 1)
-
-        while math.gcd(e, phi) != 1:
+        def generate_coprime(self, phi):
             e = random.randint(2, phi - 1)
 
-        return e
+            while math.gcd(e, phi) != 1:
+                e = random.randint(2, phi - 1)
 
-    def mod_inverse(self, a, m):
-        m0, x0, x1 = m, 0, 1
+            return e
 
-        while a > 1:
-            q = a // m
-            m, a = a % m, m
-            x0, x1 = x1 - q * x0, x0
+        def mod_inverse(self, a, m):
+            m0, x0, x1 = m, 0, 1
 
-        return x1 + m0 if x1 < 0 else x1
+            while a > 1:
+                q = a // m
+                m, a = a % m, m
+                x0, x1 = x1 - q * x0, x0
 
-    def encrypt(self, message):
-        n, e = self.public_key
-        encrypted_message = [pow(ord(char), e, n) for char in message]
-        return ' '.join(str(i) for i in encrypted_message), self.public_key, self.private_key
+            return x1 + m0 if x1 < 0 else x1
 
-    def decrypt(self, encrypted_message):
-        encrypted_message = list(encrypted_message.split(' '))
+        def get_public_key(self):
+            return self.public_key
 
-        n, d = self.private_key
-        decrypted_message = ''.join([chr(pow(int(char), d, n)) for char in encrypted_message])
-        return decrypted_message
+        def get_private_key(self):
+            return self.private_key
 
-    def get_public_key(self):
-        return self.public_key
+    class RsaExecutor:
+        def __init__(self, key):
+            if type(key) == tuple:
+                self.public_key = self.private_key = key
 
-    def get_private_key(self):
-        return self.private_key
+            elif type(key) == str:
+                if 'PUBLIC KEY' in key:
+                    key = _decode_from_pem(key, 'PUBLIC KEY')
+                elif 'PRIVATE KEY' in key:
+                    key = _decode_from_pem(key, 'PRIVATE KEY')
+                else:
+                    key = _decode_from_pem(key, None)
+                key = key.decode('utf-8').split('@')
+                self.public_key = self.private_key = ([int(i) for i in key])
 
-    def print_keys(self):
-        print("Public Key (n, e):", self.public_key)
-        print("Private Key (n, d):", self.private_key)
+        def encrypt(self, plaintext):
+            """Function To Encrypt Text With RSA"""
+            n, e = self.public_key
+            print(f"n: {n},\n e: {e}")
+            ciphertext = [pow(ord(char), e, n) for char in plaintext]
+            return ' '.join(str(i) for i in ciphertext)
 
-# Example usage:
-if __name__ == "__main__":
-    # Create an instance of the RSAEncryptorDecryptor class
-    rsa_encryptor_decryptor = RsaCipher(bits=8)
+        def decrypt(self, ciphertext):
+            """Function To Decrypt RSA Encrypted Ciphertext"""
+            ciphertext = list(map(int, ciphertext.split(' ')))
+            print(len(ciphertext))
+            n, d = self.private_key
+            print(f"n: {n},\n d: {d}")
+            decrypted_text = ''.join([chr(pow(char, d, n)) for char in ciphertext])
+            return decrypted_text
 
-    # Print public and private keys
-    rsa_encryptor_decryptor.print_keys()
 
-    # Message to be encrypted
-    message = "Hello, RSA!"
+def _encode_to_pem(data, pem_type):
+    """
+    Encode binary data to PEM format.
 
-    # Encrypt the message
-    encrypted_message, pub_key, pr_key = rsa_encryptor_decryptor.encrypt(message)
-    print("Encrypted Message:", encrypted_message)
-    # Decrypt the message
-    decrypted_message = rsa_encryptor_decryptor.decrypt(encrypted_message)
-    print("Decrypted Message:", decrypted_message)
+    Parameters:
+    - data: Bytes-like object to be encoded.
+   - pem_type: A string specifying the type of PEM block (e.g., "CERTIFICATE", "RSA PRIVATE KEY").
+
+    Returns:
+    - PEM-encoded string.
+    """
+    b64_data = base64.b64encode(data).decode('ascii')
+    pem_block = f"-----BEGIN {pem_type}-----\n{_insert_newlines(b64_data, 64)}\n-----END {pem_type}-----\n"
+    return pem_block
+
+
+def _decode_from_pem(pem_data, pem_type):
+    """
+    Decode PEM-encoded data.
+
+    Parameters:
+    - pem_data: PEM-encoded string.
+    - pem_type: A string specifying the type of PEM block (e.g., "CERTIFICATE", "RSA PRIVATE KEY").
+
+    Returns:
+    - Decoded bytes.
+    """
+    pem_data = pem_data.strip()
+    start_idx, end_idx = 0, len(pem_data) - 1
+    b64_data = pem_data.replace('\n', '')
+    if pem_type is not None:
+        start_marker = f"-----BEGIN {pem_type}-----"
+        end_marker = f"-----END {pem_type}-----"
+        start_idx = pem_data.find(start_marker)
+        end_idx = pem_data.find(end_marker)
+        b64_data = pem_data[start_idx + len(start_marker):end_idx].replace('\n', '')
+    if start_idx == -1 or end_idx == -1:
+        raise ValueError(f"Invalid PEM data. Could not find start or end marker for {pem_type}.")
+
+    decoded_data = base64.b64decode(b64_data)
+    return decoded_data
+
+
+def _insert_newlines(s, line_length):
+    """Insert newline characters into a string at specified intervals."""
+    return '\n'.join(s[i:i + line_length] for i in range(0, len(s), line_length))
+
