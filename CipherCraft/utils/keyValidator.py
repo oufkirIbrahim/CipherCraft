@@ -1,6 +1,4 @@
 import CipherCraft.utils.enums.preference as pr
-from CipherCraft.classic import caesar, hill,  affine, multiplicative, permutation, transposition, Vigenere
-from CipherCraft.modern import rc4, des, aes, rsa
 from CipherCraft.utils.inputHandler import InputHandler
 
 
@@ -29,34 +27,38 @@ class KeyValidator:
         return self.mappings[era][algorithm](key)
 
     def _affine(self, key):
-        return
+        a, b = key
+        return self.validator.digits_only(str(a)) and self.validator.is_invertible(a) and self.validator.is_valid_integer(str(b))
 
     def _caesar(self, key):
-        return self.validator.digits_only(key)
+        return self.validator.digits_only(key) and int(key) < 26
 
     def _hill(self, key):
-        return
+        return self.validator.is_valid_hill_key(key)
 
     def _multiplicative(self, key):
-        return
+        return self.validator.digits_only(key) and self.validator.is_invertible(key)
 
     def _permutation(self, key):
-        return
+        return self.validator.has_duplicates(key) & self.validator.has_all_alphabet_characters(key)
 
     def _transposition(self, key):
-        return
+        return set(key) == set(range(1, len(key)+1))
 
     def _vigenere(self, key):
-        return
+        return self.validator.letters_only(key)
 
     def _aes(self, key):
-        return
+        return self.validator.is_hex_string(key) and len(key) == 32
 
     def _des(self, key):
-        return
+        return self.validator.is_hex_string(key) and len(key) == 16
 
     def _rc4(self, key):
-        return
+        return self.validator.validate_rc4_key(key)
 
     def _rsa(self, key):
-        return
+        if isinstance(key, tuple):
+            return self.validator.validate_rsa_tuple(key)
+        else:
+            return self.validator.validate_pem_data(key) or self.validator.is_base64_encoded(key)
