@@ -55,7 +55,7 @@ class KeyGenerator:
             return KeyGenerator.generate_random_key(random.randint(min_r, max_r))
 
         @staticmethod
-        def transposition_key(key_len):
+        def transposition_key(key_len=5):
             """
             Generate a random Transposition cipher key
             :return: int

@@ -19,7 +19,12 @@ class VisualEnums(Enum):
 class Actions(VisualEnums):
     CLASSIC = auto()
     MODERN = auto()
+    GENERATE_ASYMMETRIC_KEY = auto()
     EXIT = auto()
+
+
+class AsymmetricAlgorithm(VisualEnums):
+    RSA = auto()
 
 
 class Operations(VisualEnums):
@@ -87,3 +92,4 @@ class KeyMethod(VisualEnums):
 class CryptAnalysis(VisualEnums):
     BRUTEFORCE = auto()
     FREQUENCYANALYSIS = auto()
+

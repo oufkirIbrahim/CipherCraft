@@ -3,7 +3,7 @@ import numpy as np
 
 def test_transposition_cipher_encryption():
 
-    key = [3, 5, 1, 6, 4,2]
+    key = [3, 5, 1, 6, 4, 2]
     transposition_copher = TranspositionCipher(key)
 
     cipher_text,arr = transposition_copher.encrypt("ALI VA A L ECOLE")

@@ -39,7 +39,7 @@ class TranspositionCipher:
         ciphertext = self.mainTransposition(text)
         decryptKey = np.argsort(self.key) + 1
 
-        return ciphertext, decryptKey
+        return ciphertext
 
     def decrypt(self, ciphertext):
         # Decrypt the ciphertext

@@ -49,15 +49,3 @@ class Rc4Cipher:
         # Convert the decrypted bytes to a string using utf-8 encoding
         return bytes(decrypted_text).decode('utf-8')
 
-# Example usage:
-key = "not-so-random-key"
-plaintext = "RC4 for Rivest Cipher 4 is a symmetric and fast cipher algorithm"
-
-rc4_cipher = Rc4Cipher(key)
-
-encrypted_text = rc4_cipher.encrypt(plaintext)
-decrypted_text = rc4_cipher.decrypt(encrypted_text)
-
-print("Plaintext:", plaintext)
-print("Encrypted text:", encrypted_text)
-print("Decrypted text:", decrypted_text)
