@@ -1,7 +1,10 @@
 
 class Caesar:
     def __init__(self, key):
-        self.key = int(key)
+        if key.isalpha():
+            self.key = ord(key.upper()) - ord('A')
+        else:
+            self.key = int(key)
 
     def encrypt(self, data):
         result = ""

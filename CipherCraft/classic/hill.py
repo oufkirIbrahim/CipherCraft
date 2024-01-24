@@ -57,7 +57,7 @@ class HillCipher:
         decrypt_key = np.array(self.matrix_inverse_mod())
         print(f'cipher {cipher_text}')
         print(f'key {decrypt_key}')
-        return cipher_text, decrypt_key
+        return cipher_text
 
     def decrypt(self, plain_text):
         cipher_text = self.mainHill(plain_text)

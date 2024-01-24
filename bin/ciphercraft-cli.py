@@ -8,6 +8,8 @@ from CipherCraft.utils.Generators.logoHandler import LogoHandler
 import CipherCraft.utils.enums.preference as pr
 from CipherCraft.utils.filesHandler import FilesHandler
 from CipherCraft.utils.Runner import Runner
+from CipherCraft.utils.syntax import KeySyntax
+from CipherCraft.utils.custom_style import *
 
 
 class CLInterface:
@@ -16,6 +18,13 @@ class CLInterface:
         self.logo_handler = LogoHandler()
         self.files_handler = FilesHandler()
         self.runner = Runner()
+        self.syntax = KeySyntax()
+
+        self.preference = None
+        self.init_preference()
+
+    def init_preference(self):
+        """Function To Initialize User Preference"""
         self.preference = {
             'action': None,
             'algorithm': None,
@@ -31,7 +40,6 @@ class CLInterface:
                     'call': None,
                     pr.DecryptionKey.IMPORT_KEY.__name__(): self.import_key,
                     pr.DecryptionKey.INPUT_KEY.__name__(): self.input_key,
-                    pr.DecryptionKey.WITHOUT_KEY.__name__(): self.perform_cryptanalysis,
                 },
             },
             'key': None,
@@ -65,7 +73,13 @@ class CLInterface:
         :param choices:
         :return: None
         """
-        return questionary.select(prompt, choices=[_['name'] for _ in choices]).ask()
+        bck_to_main = 'Return To Main'
+        tmp = [_['name'] for _ in choices]
+        tmp.append(bck_to_main)
+        user_chx = questionary.select(prompt, choices=tmp).ask()
+        if user_chx == bck_to_main:
+            self.main_menu()
+        return user_chx
 
     def get_text_input(self, prompt):
         return questionary.text(prompt).ask()
@@ -147,6 +161,21 @@ class CLInterface:
         # HANDLING THE KEY
         self.key_handler(p)
 
+    def generate_asymmetric_key(self):
+        """Function to generate asymmetric key"""
+        algorithm = self.get_user_choice(
+            "Select an algorithm:",
+            choices=pr.AsymmetricAlgorithm.choices()
+        )
+        conf = self.get_text_input("Enter Number Of Bits: ")
+        conf = int(conf)
+
+        # GENERATE A KEY PAIR FOR THE ASYMMETRIC ALGORITHM
+        self.runner.generate_asymmetric_key(algorithm, conf)
+
+        # RETURN TO THE MAIN PROGRAM
+        self.main_menu()
+
     def modern_handler(self, p: pr):
         """
         This Function Handles The Modern Algorithms Logic
@@ -181,7 +210,6 @@ class CLInterface:
             f'Select {text_type}{alt} source:',
             choices=p.choices()
         )
-        return
 
     def key_selection_handler(self, p: pr, action='encryption'):
         """
@@ -202,10 +230,6 @@ class CLInterface:
         :return: None
         """
 
-        # CHECK IF THE USER HAS SELECTED TO PROCEED WITHOUT DECRYPTION KEY
-        if pr.DecryptionKey.WITHOUT_KEY.__cmp__(self.preference['key_selection']['decryption']['call']):
-            # NOTHING TO DO
-            return
         # SELECT THE KEY METHOD
         if pr.Operations.ENCRYPT.__cmp__(self.preference['operation']):
 
@@ -233,9 +257,20 @@ class CLInterface:
         This Function Gets The Key From STDIN
         :return:
         """
+        print(comment(self.syntax.get_syntax(self.preference['action'],
+                                             self.preference['algorithm'])))
+        tmp = self.get_text_input(f"Input Key:")
+        # PARSE THE KEY
+        tmp = self.runner.parser(self.preference['action'],
+                                     self.preference['algorithm'],
+                                     tmp)
+        if tmp is None:
+            sys.stderr.write(error("Invalid Key, Please Try Again."))
+            # REDO
+            self.input_key()
 
-        self.preference['key'] = self.get_text_input("Key:")
-        return
+        # PROCEED
+        self.preference['key'] = tmp
 
     def import_key(self):
         """
@@ -243,6 +278,14 @@ class CLInterface:
         :return:
         """
         self.import_file('key')
+        # PARSE THE KEY
+        tmp = self.runner.parser(self.preference['action'],
+                                     self.preference['algorithm'],
+                                     self.preference['key'])
+        if tmp is None:
+            sys.stderr.write(error("Invalid Key, Please Try Again."))
+            # REDO
+            self.import_key()
 
     def import_file(self, name):
         """
@@ -251,7 +294,7 @@ class CLInterface:
         :return:
         """
         # GETTING THE SOURCE PATH
-        file_path = self.get_text_input(f"Path to the key {name}:")
+        file_path = self.get_text_input(f"Enter A Valid File Path to the {name}:")
 
         content = None
         # CHECKING THE SOURCE PATH VALIDATION
@@ -263,11 +306,11 @@ class CLInterface:
                 # CONTENT IS VALID
                 self.preference[name] = content
             else:
-                print('File is Empty')
+                sys.stderr.write(error(':: File is Empty!, Try  Again.'))
                 # REDO
                 self.import_file(name)
         else:
-            print('Path not valid')
+            sys.stderr.write(error(':: Path not valid!, Try Again.'))
             # REDO
             self.import_file(name)
 
@@ -278,17 +321,7 @@ class CLInterface:
 
         :return:
         """
-        return
-
-    def perform_cryptanalysis(self):
-        """
-        This Function Selects The Cryptanalysis Method To Decrypt
-        :return:
-        """
-        self.preference['cryptanalysis'] = self.get_user_choice(
-            "Select a cryptanalysis algorithm :",
-            choices=pr.CryptAnalysis.choices()
-        )
+        self.preference['key'] = self.runner.generate(self.preference['action'], self.preference['algorithm'])
 
     def get_source_stdin(self, source_type='plaintext'):
         """
@@ -313,11 +346,8 @@ class CLInterface:
         """
 
         # CHECKS IF THE OUTPUT IS SET
-        if self.preference['dist'] is not None:
-            print(f"Output: {self.preference['dist']}")
-        else:
-            print('Not yet')
-            # <--------------------------------------- Needs Attention <-----------------------------------
+        if self.preference['dist'] is None:
+            pass
 
     def print_dist_file(self):
         """
@@ -327,7 +357,7 @@ class CLInterface:
         if self.preference['dist_path'] is None:
 
             # GETTING THE DESTINATION PATH
-            file_dist = self.get_text_input("Path to the save the output:")
+            file_dist = self.get_text_input("Enter A Valid File Path To Save The Output:")
 
             # GETTING THE FILE DIRECTORY
             file_path = os.path.dirname(file_dist)
@@ -340,14 +370,14 @@ class CLInterface:
 
                 # CHECKING IF THE FILE NAME ALREADY EXISTS
                 if os.path.isfile(file_dist):
-                    print(f'file {file_name} already exists!')
+                    sys.stderr.write(error(f'file {file_name} already exists!'))
                     # REDO
                     self.print_dist_file()
                 else:
                     # SETTING THE DESTINATION PATH
                     self.preference['path_dist'] = file_dist
             else:
-                print('Path is not valid!')
+                sys.stderr.write(error(f'File Path Is Not Valid!'))
                 # REDO
                 self.print_dist_file()
 
@@ -358,21 +388,19 @@ class CLInterface:
 
             # CHECKING THE STATUS
             if not status:
-                # CONTENT IS VALID
-                print('File is Empty')
 
-                # MORE ACTIONS HERE <-----------------------------------------
-                self.print_dist_file()
-                # <------------------------------------------------------------
+                # ERROR OCCURRED
+                raise Exception('Could Not Save File')
             else:
-                print(f'Saved To: {self.preference["dist_path"]}')
-
+                print(notice(f':: Output Successfully Saved To: {self.preference["dist_path"]}'))
         return
 
     def main_menu(self):
 
         while True:
             self.print_logo()
+            self.init_preference()
+
             self.preference['action'] = self.get_user_choice(
                 "Select an option:",
                 choices=pr.Actions.choices()
@@ -390,6 +418,8 @@ class CLInterface:
             elif pr.Actions.MODERN.__cmp__(self.preference['action']):
                 # CHOOSE A MODERN ALGORITHM
                 self.modern_handler(pr)
+            elif pr.Actions.GENERATE_ASYMMETRIC_KEY.__cmp__(self.preference['action']):
+                self.generate_asymmetric_key()
 
             # PERFORM ACTIONS
             self.run_app()
@@ -404,6 +434,8 @@ class CLInterface:
             self.preference['key'])
 
         self.print_out_stream()
+        if self.preference['dist_path']:
+            self.print_dist_file()
         return
 
     def print_out_stream(self):
@@ -419,7 +451,8 @@ class CLInterface:
         print(f"{Fore.YELLOW + Style.BRIGHT}Key: {self.preference['key']}")
         print(f"{Fore.YELLOW + Style.BRIGHT}Input text: {self.preference['source']}")
         print(f"{Fore.YELLOW + Style.BRIGHT}Output text: {self.preference['dist']}")
-        print(f"{Fore.YELLOW + Style.BRIGHT}Save path: {self.preference['dist_path']}")
+        if self.preference['dist_path'] is not None:
+            print(f"{Fore.YELLOW + Style.BRIGHT}Save path: {self.preference['dist_path']}")
         print("\n" + Fore.GREEN + Style.BRIGHT + "Process Completed!")
 
         input("\nPress Enter to continue...")
