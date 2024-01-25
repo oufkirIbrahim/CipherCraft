@@ -6,8 +6,8 @@ validator = KeyValidator()
 generator = KeyGenerator()
 
 
-def test_permutation_key():
-    key = generator.Classic.permutation_key()
-    assert validator.validate(pr.Actions.CLASSIC.__name__(),
-                              pr.ClassicAlgorithms.PERMUTATION.__name__(),
+def test_rsa_key():
+    key = generator.Modern.rsa_key(bits=1024, test=True)
+    assert validator.validate(pr.Actions.MODERN.__name__(),
+                              pr.ModernAlgorithms.RSA.__name__(),
                               key)

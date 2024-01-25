@@ -1,43 +1,70 @@
-# SecureCraft
+~~# CipherCraft
 
-SecureCraft is a Python-based command-line cryptographic toolkit developed as a part of the "Cryptographie appliquée et Sécurité des réseaux" module in the Master M2I program.
+![CipherCraft Logo](assets/logo/logo.png)
 
-## Overview
+**CipherCraft** is a powerful Python-based cryptography tool with a command-line interface, offering a wide range of classic and modern cryptographic algorithms.
 
-SecureCraft offers a versatile and modular approach to encrypting and decrypting data using various algorithms. Its design allows for seamless integration of classical and modern encryption methods with a focus on a user-friendly command-line experience.
+## Table of Contents
 
-## Features
+- [Description](#description)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Contributors](#contributors)
+- [License](#license)
 
-- **Modular Design:** Easily extendable with support for a diverse range of encryption algorithms.
-- **Classic and Modern Encryption:** Choose between classical and modern encryption modes based on your security requirements.
-- **User-Friendly Command Line Experience:** Intuitive options enable straightforward encryption and decryption directly from the terminal.
+## Description
 
-## Getting Started
+CipherCraft is designed to provide a convenient and versatile environment for cryptographic operations. Whether you are working with classic algorithms like Caesar cipher or modern ones like AES or RSA, CipherCraft has you covered. The tool supports encryption, decryption, key generation.
 
-### Prerequisites
+## Installation
 
-- Python 3.x
-- Git (optional)
-
-### Installation
+To install CipherCraft, follow these steps:
 
 1. Clone the repository:
 
+    ```bash
+    git clone https://github.com/oufkirIbrahim/CipherCraft
+    ```
+   
+   Or this one
+
    ```bash
-   git clone https://github.com/yourusername/securecraft.git
-   cd securecraft
+    git clone https://github.com/codeonym/CipherCraft
+    ```
 
-2. Run the script with your desired options:
-   ```bash
-    python securecraft.py -a encrypt -m classic -alg caesar -d "Your message"
-    
- Adjust the options according to your encryption needs.
+2. Navigate to the project directory:
 
+    ```bash
+    cd CipherCraft
+    ```
 
-## Supported Algorithms
+3. Install the tool in editable mode:
 
--**Caesar Cipher:** A classic substitution cipher technique.
+    ```
+   pip install .
+   ```
 
-## Contribution
+   This will install CipherCraft from the current directory.
 
-Contributions, bug reports, and feature suggestions are welcome! If you find an issue or have an idea for improvement, please open an issue or submit a pull request.
+## Usage
+
+Once installed, CipherCraft can be accessed via the command line. Here's a basic example:
+
+```bash
+ciphercraft-cli
+```
+
+For detailed instructions on how to use specific algorithms, operations, and features, refer to the [official documentation](docs/documentation.md).
+
+## Contributors
+
+CipherCraft is the result of collaborative efforts. The following contributors have played a significant role in the project:
+
+- [Oufkir Ibrahim](https://github.com/oufkirIbrahim)
+- [Bouarour Ayoub](https://github.com/codeonym)
+
+We welcome contributions from the community to make CipherCraft even more powerful and feature-rich.
+
+## License
+
+CipherCraft is open-source and released under the [MIT License](LICENSE). Feel free to explore, modify, and distribute the code as per the terms of the license.~~

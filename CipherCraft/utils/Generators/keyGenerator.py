@@ -42,7 +42,7 @@ class KeyGenerator:
             # A IS COPRIME WITH 26
             a = random.choice([1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25])
             b = random.randint(0, 25)
-            return a, b
+            return [a, b]
 
         @staticmethod
         def vigenere_key(min_r=0, max_r=10):
@@ -168,11 +168,12 @@ class KeyGenerator:
             return ''.join(random.choices(key_vals, k=min_length))
 
         @staticmethod
-        def rsa_key(bits=1024):
+        def rsa_key(bits=1024, test=False):
             """
             Generate a random rsa key
             :return:
             """
-            rsa = RsaCipher.RsaGenerator(bits)
+            rsa = RsaCipher.RsaGenerator(bits, test)
+            return rsa.get_public_key()
 
 

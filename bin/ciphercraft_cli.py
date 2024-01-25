@@ -1,5 +1,9 @@
+__version__ = "1.0"
+
 import os
 import sys
+import time
+
 import questionary
 from colorama import Fore, Style, init
 
@@ -10,6 +14,8 @@ from CipherCraft.utils.filesHandler import FilesHandler
 from CipherCraft.utils.Runner import Runner
 from CipherCraft.utils.syntax import KeySyntax
 from CipherCraft.utils.custom_style import *
+from CipherCraft.utils.keyValidator import KeyValidator
+from CipherCraft.utils.Generators.errorLogger import ErrorLogger
 
 
 class CLInterface:
@@ -17,9 +23,10 @@ class CLInterface:
     def __init__(self):
         self.logo_handler = LogoHandler()
         self.files_handler = FilesHandler()
+        self.error_handler = ErrorLogger()
         self.runner = Runner()
         self.syntax = KeySyntax()
-
+        self.key_validator = KeyValidator()
         self.preference = None
         self.init_preference()
 
@@ -168,7 +175,11 @@ class CLInterface:
             choices=pr.AsymmetricAlgorithm.choices()
         )
         conf = self.get_text_input("Enter Number Of Bits: ")
-        conf = int(conf)
+        try:
+            conf = int(conf)
+        except Exception:
+            self.generate_asymmetric_key()
+            return
 
         # GENERATE A KEY PAIR FOR THE ASYMMETRIC ALGORITHM
         self.runner.generate_asymmetric_key(algorithm, conf)
@@ -218,6 +229,10 @@ class CLInterface:
         :param p:
         :return: None
         """
+        # CHECK ALGO TYPE AND ADJUST THE KEY MAPPING FOR ASYMMETRIC ALGOS
+        if self.preference['algorithm'] in [alg['name'] for alg in pr.AsymmetricAlgorithm.choices()]:
+            p = pr.AsymEncryptionKey
+
         self.preference['key_selection'][action]['call'] = self.get_user_choice(
             "Select a Key:",
             choices=p.choices()
@@ -240,7 +255,17 @@ class CLInterface:
             index = self.preference['key_selection']['encryption']['call']
 
             # CALL THE CORRESPONDING FUNCTION
-            self.preference['key_selection']['encryption'][index]()
+            while True:
+                key = self.preference['key_selection']['encryption'][index]()
+                if not self.key_validator.validate(self.preference['action'],
+                                                   self.preference['algorithm'],
+                                                   key):
+                    print(error(':: This key is invalid! Please try again.'))
+                    continue
+
+                if key is not None:
+                    self.preference['key'] = key
+                    break
 
         else:
             # DECRYPTION
@@ -250,7 +275,17 @@ class CLInterface:
             index = self.preference['key_selection']['decryption']['call']
 
             # CALL THE CORRESPONDING FUNCTION
-            self.preference['key_selection']['decryption'][index]()
+            while True:
+                key = self.preference['key_selection']['decryption'][index]()
+                if not self.key_validator.validate(self.preference['action'],
+                                                   self.preference['algorithm'],
+                                                   key):
+                    print(error(':: Invalid Key!, Please Try Again.'))
+                    continue
+
+                if key is not None:
+                    self.preference['key'] = key
+                    break
 
     def input_key(self):
         """
@@ -261,31 +296,37 @@ class CLInterface:
                                              self.preference['algorithm'])))
         tmp = self.get_text_input(f"Input Key:")
         # PARSE THE KEY
-        tmp = self.runner.parser(self.preference['action'],
-                                     self.preference['algorithm'],
-                                     tmp)
-        if tmp is None:
-            sys.stderr.write(error("Invalid Key, Please Try Again."))
+        key = self.runner.parser(self.preference['action'],
+                                 self.preference['algorithm'],
+                                 tmp)
+        if key is None:
+            print(error("Could not parse the key! Please try again."))
             # REDO
-            self.input_key()
+            return None
 
         # PROCEED
-        self.preference['key'] = tmp
+        return key
 
     def import_key(self):
         """
         This Function Imports The Key From Files
         :return:
         """
-        self.import_file('key')
+        tmp = None
+        while True:
+            tmp = self.import_file('key')
+            if tmp is not None:
+                break
+
         # PARSE THE KEY
-        tmp = self.runner.parser(self.preference['action'],
-                                     self.preference['algorithm'],
-                                     self.preference['key'])
-        if tmp is None:
-            sys.stderr.write(error("Invalid Key, Please Try Again."))
+        key = self.runner.parser(self.preference['action'],
+                                 self.preference['algorithm'],
+                                 tmp)
+        if key is None:
+            print(error("Could not parse the key! Please try again."))
             # REDO
-            self.import_key()
+            return None
+        return key
 
     def import_file(self, name):
         """
@@ -296,7 +337,6 @@ class CLInterface:
         # GETTING THE SOURCE PATH
         file_path = self.get_text_input(f"Enter A Valid File Path to the {name}:")
 
-        content = None
         # CHECKING THE SOURCE PATH VALIDATION
         if os.path.exists(file_path) and os.path.isfile(file_path):
             content = self.files_handler.read_file(file_path)
@@ -304,24 +344,22 @@ class CLInterface:
             # CHECKING IF CONTENT IS SET PROPERLY
             if content is not None:
                 # CONTENT IS VALID
-                self.preference[name] = content
+                return content
             else:
-                sys.stderr.write(error(':: File is Empty!, Try  Again.'))
+                print(error(':: File is Empty!, Try  Again.'))
                 # REDO
-                self.import_file(name)
         else:
-            sys.stderr.write(error(':: Path not valid!, Try Again.'))
+            print(error(':: Path not valid!, Try Again.'))
             # REDO
-            self.import_file(name)
 
-        return
+        return None
 
     def generate_key(self):
         """
 
         :return:
         """
-        self.preference['key'] = self.runner.generate(self.preference['action'], self.preference['algorithm'])
+        return self.runner.generate(self.preference['action'], self.preference['algorithm'])
 
     def get_source_stdin(self, source_type='plaintext'):
         """
@@ -329,7 +367,6 @@ class CLInterface:
         :return:
         """
         self.preference["source"] = self.get_text_input(f"Source {source_type}:")
-        return
 
     def get_source_file(self):
         """
@@ -337,7 +374,11 @@ class CLInterface:
         :return:
         """
 
-        self.import_file('source')
+        while True:
+            source = self.import_file('source')
+            if source is not None:
+                self.preference['source'] = source
+                break
 
     def print_dist_stdout(self):
         """
@@ -370,59 +411,70 @@ class CLInterface:
 
                 # CHECKING IF THE FILE NAME ALREADY EXISTS
                 if os.path.isfile(file_dist):
-                    sys.stderr.write(error(f'file {file_name} already exists!'))
+                    print(error(f'File {file_name} already exists! Please try again.'))
                     # REDO
                     self.print_dist_file()
                 else:
                     # SETTING THE DESTINATION PATH
-                    self.preference['path_dist'] = file_dist
+                    self.preference['dist_path'] = file_dist
             else:
-                sys.stderr.write(error(f'File Path Is Not Valid!'))
+                print(error(f'File path is invalid! Please try again.'))
                 # REDO
                 self.print_dist_file()
 
         else:
 
-            status = False
             status = self.files_handler.write_file(self.preference['dist_path'], self.preference['dist'])
 
             # CHECKING THE STATUS
-            if not status:
+            if status is None:
 
                 # ERROR OCCURRED
-                raise Exception('Could Not Save File')
+                raise Exception(f' Could no save to: {self.preference["dist_path"]}')
             else:
-                print(notice(f':: Output Successfully Saved To: {self.preference["dist_path"]}'))
+                print(success(f':: Successfully saved to: {self.preference["dist_path"]}'))
         return
 
     def main_menu(self):
 
         while True:
-            self.print_logo()
-            self.init_preference()
+            try:
+                self.print_logo()
+                self.init_preference()
 
-            self.preference['action'] = self.get_user_choice(
-                "Select an option:",
-                choices=pr.Actions.choices()
-            )
+                self.preference['action'] = self.get_user_choice(
+                    "Select an option:",
+                    choices=pr.Actions.choices()
+                )
 
-            # TESTING CHOICE
-            if pr.Actions.EXIT.__cmp__(self.preference['action']):
+                # TESTING CHOICE
+                if pr.Actions.EXIT.__cmp__(self.preference['action']):
 
-                # EXITING THE PROGRAM
-                sys.exit(0)
-            elif pr.Actions.CLASSIC.__cmp__(self.preference['action']):
+                    # EXITING THE PROGRAM
+                    print(warning(':: Exiting ...'))
+                    time.sleep(0.3)
+                    print(message(':: Exited. '))
+                    time.sleep(0.2)
+                    print(message('Goodbye!'))
+                    sys.exit(0)
 
-                # CHOOSE A CLASSIC ALGORITHM
-                self.classic_handler(pr)
-            elif pr.Actions.MODERN.__cmp__(self.preference['action']):
-                # CHOOSE A MODERN ALGORITHM
-                self.modern_handler(pr)
-            elif pr.Actions.GENERATE_ASYMMETRIC_KEY.__cmp__(self.preference['action']):
-                self.generate_asymmetric_key()
+                elif pr.Actions.CLASSIC.__cmp__(self.preference['action']):
 
-            # PERFORM ACTIONS
-            self.run_app()
+                    # CHOOSE A CLASSIC ALGORITHM
+                    self.classic_handler(pr)
+                elif pr.Actions.MODERN.__cmp__(self.preference['action']):
+                    # CHOOSE A MODERN ALGORITHM
+                    self.modern_handler(pr)
+                elif pr.Actions.GENERATE_ASYMMETRIC_KEY.__cmp__(self.preference['action']):
+                    self.generate_asymmetric_key()
+
+                # PERFORM ACTIONS
+                self.run_app()
+            except Exception as e:
+                # SOMETHING WENT WRONG
+                self.error_handler.error_log(str(e))
+                sys.stderr.write(error(":: Something went wrong: " + e.__str__() + "\nMore details at logs/errorLogs.txt"))
+                exit(-1)
 
     def run_app(self):
         """This Function Runs The Actions"""
@@ -432,33 +484,36 @@ class CLInterface:
             self.preference['operation'],
             self.preference['source'],
             self.preference['key'])
-
         self.print_out_stream()
-        if self.preference['dist_path']:
-            self.print_dist_file()
-        return
 
     def print_out_stream(self):
-        init(autoreset=True)  # Initialize colorama
 
         self.print_logo()
         print("\n", Fore.GREEN + Style.BRIGHT + "Processing...")
 
         print(Fore.CYAN + Style.BRIGHT + "\nSelected Options:")
-        print(f"{Fore.YELLOW + Style.BRIGHT}Action: {self.preference['action']}")
-        print(f"{Fore.YELLOW + Style.BRIGHT}Algorithm: {self.preference['algorithm']}")
-        print(f"{Fore.YELLOW + Style.BRIGHT}Operation: {self.preference['operation']}")
-        print(f"{Fore.YELLOW + Style.BRIGHT}Key: {self.preference['key']}")
-        print(f"{Fore.YELLOW + Style.BRIGHT}Input text: {self.preference['source']}")
-        print(f"{Fore.YELLOW + Style.BRIGHT}Output text: {self.preference['dist']}")
+        print(f"{Fore.LIGHTMAGENTA_EX + Style.BRIGHT}Action: {self.preference['action']}")
+        print(f"{Fore.LIGHTMAGENTA_EX + Style.BRIGHT}Algorithm: {self.preference['algorithm']}")
+        print(f"{Fore.LIGHTMAGENTA_EX + Style.BRIGHT}Operation: {self.preference['operation']}")
+        print(f"{Fore.LIGHTBLUE_EX + Style.BRIGHT}Key: {self.preference['key']}")
+        print(f"{Fore.LIGHTMAGENTA_EX + Style.BRIGHT}Input text: {self.preference['source']}")
+        print(f"{Fore.BLUE + Style.BRIGHT}{'-' * 40}")
+        print(f"{Fore.LIGHTBLUE_EX + Style.BRIGHT}Output text: {self.preference['dist']}")
+        print(f"{Fore.BLUE + Style.BRIGHT}{'-' * 40}")
         if self.preference['dist_path'] is not None:
-            print(f"{Fore.YELLOW + Style.BRIGHT}Save path: {self.preference['dist_path']}")
+            print(f"{Fore.LIGHTGREEN_EX + Style.BRIGHT}Save path: {self.preference['dist_path']}")
         print("\n" + Fore.GREEN + Style.BRIGHT + "Process Completed!")
-
+        if self.preference['dist_path']:
+            print(notice('Saving to file...'))
+            self.print_dist_file()
         input("\nPress Enter to continue...")
 
 
-if __name__ == "__main__":
+def main():
+    init(autoreset=True)  # Initialize colorama
     cli_interface = CLInterface()
     cli_interface.main_menu()
-    cli_interface.print_out_stream()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,10 +1,14 @@
 from CipherCraft.utils.Generators.keyGenerator import KeyGenerator
-from unittest.mock import patch
+from CipherCraft.utils.keyValidator import KeyValidator
+import CipherCraft.utils.enums.preference as pr
+
+validator = KeyValidator()
+generator = KeyGenerator()
 
 
 def test_aes_key():
-    # CONTROLLING THE BEHAVIOR OF THE MOCKED FUNCTION
-    with patch("CipherCraft.utils.Generators.keyGenerator.random.choice", return_value='A'):
-        key = KeyGenerator().Modern.aes_key()
-        assert len(key) == 32
-        # assert 'A' in key
+    key = generator.Modern.aes_key()
+    assert validator.validate(pr.Actions.MODERN.__name__(),
+                              pr.ModernAlgorithms.AES.__name__(),
+                              key)
+

@@ -6,7 +6,7 @@ def test_transposition_cipher_encryption():
     key = [3, 5, 1, 6, 4, 2]
     transposition_copher = TranspositionCipher(key)
 
-    cipher_text,arr = transposition_copher.encrypt("ALI VA A L ECOLE")
+    cipher_text = transposition_copher.encrypt("ALI VA A L ECOLE")
 
     assert cipher_text == "IAA AV L C LLEOE"
 

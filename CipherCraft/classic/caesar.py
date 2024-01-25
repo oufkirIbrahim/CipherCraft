@@ -1,7 +1,7 @@
 
 class Caesar:
     def __init__(self, key):
-        if key.isalpha():
+        if type(key) == str and key.isalpha():
             self.key = ord(key.upper()) - ord('A')
         else:
             self.key = int(key)

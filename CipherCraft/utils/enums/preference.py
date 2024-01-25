@@ -39,6 +39,11 @@ class EncryptionKey(VisualEnums):
     GENERATE_RANDOM_KEY = auto()
 
 
+class AsymEncryptionKey(VisualEnums):
+    IMPORT_KEY = auto()
+    INPUT_KEY = auto()
+
+
 # DEFINE THE DECRYPTION KEY METHOD
 class DecryptionKey(VisualEnums):
     IMPORT_KEY = auto()

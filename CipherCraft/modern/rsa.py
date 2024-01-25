@@ -15,21 +15,24 @@ class RsaCipher:
         pass
 
     class RsaGenerator:
-        def __init__(self, bits=1024):
+        def __init__(self, bits=1024, test=False):
             self.bits = bits
             self.file_handler = FilesHandler()
             self.public_key, self.private_key = self.generate_keypair()
 
             tmp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
             public_key, private_key = self.generate_pem_keypair()
-            self.file_handler.append_file(os.path.join(os.path.dirname(__file__),
-                                                       '..', '..', 'inventory', 'rsa',
-                                                       tmp + "rsa_pub.pem"
-                                                       ), public_key)
-            self.file_handler.append_file(os.path.join(os.path.dirname(__file__),
-                                                       '..', '..', 'inventory', 'rsa',
-                                                       tmp + "rsa_private.pem"
-                                                       ), private_key)
+            if not test:
+                self.file_handler.append_file(os.path.join(os.path.dirname(__file__),
+                                                           '..', '..', 'inventory', 'rsa',
+                                                           tmp + "rsa_pub.pem"
+                                                           ), public_key)
+                self.file_handler.append_file(os.path.join(os.path.dirname(__file__),
+                                                           '..', '..', 'inventory', 'rsa',
+                                                           tmp + "rsa_private.pem"
+                                                           ), private_key)
+            else:
+                self.public_key, self.private_key = public_key, private_key
 
         def generate_pem_keypair(self):
             public_key = str(self.public_key[0]) + "@" + str(self.public_key[1])
@@ -86,7 +89,7 @@ class RsaCipher:
 
     class RsaExecutor:
         def __init__(self, key):
-            if type(key) == tuple:
+            if type(key) == list:
                 self.public_key = self.private_key = key
 
             elif type(key) == str:
@@ -102,16 +105,13 @@ class RsaCipher:
         def encrypt(self, plaintext):
             """Function To Encrypt Text With RSA"""
             n, e = self.public_key
-            print(f"n: {n},\n e: {e}")
             ciphertext = [pow(ord(char), e, n) for char in plaintext]
             return ' '.join(str(i) for i in ciphertext)
 
         def decrypt(self, ciphertext):
             """Function To Decrypt RSA Encrypted Ciphertext"""
             ciphertext = list(map(int, ciphertext.split(' ')))
-            print(len(ciphertext))
             n, d = self.private_key
-            print(f"n: {n},\n d: {d}")
             decrypted_text = ''.join([chr(pow(char, d, n)) for char in ciphertext])
             return decrypted_text
 
