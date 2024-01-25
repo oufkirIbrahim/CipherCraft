@@ -1,4 +1,4 @@
-~~# CipherCraft
+# CipherCraft
 
 ![CipherCraft Logo](assets/logo/logo.png)
 
