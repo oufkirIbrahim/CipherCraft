@@ -27,16 +27,18 @@ class KeyValidator:
         return self.mappings[era][algorithm](key)
 
     def _affine(self, key):
-        a, b = key
+        a, b = key[0], key[1]
         return self.validator.digits_only(str(a)) and self.validator.is_invertible(a) and self.validator.is_valid_integer(str(b))
 
     def _caesar(self, key):
-        return self.validator.digits_only(key) and int(key) < 26
+        return self.validator.digits_only(key) or self.validator.letters_only(key)
 
     def _hill(self, key):
         return self.validator.is_valid_hill_key(key)
 
     def _multiplicative(self, key):
+        if type(key) == str:
+            key = ord(key.upper()) - ord('A')
         return self.validator.digits_only(key) and self.validator.is_invertible(key)
 
     def _permutation(self, key):
@@ -58,7 +60,7 @@ class KeyValidator:
         return self.validator.validate_rc4_key(key)
 
     def _rsa(self, key):
-        if isinstance(key, tuple):
-            return self.validator.validate_rsa_tuple(key)
+        if isinstance(key, list):
+            return self.validator.validate_rsa_list(key)
         else:
             return self.validator.validate_pem_data(key) or self.validator.is_base64_encoded(key)

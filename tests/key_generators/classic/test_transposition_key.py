@@ -1,10 +1,13 @@
 from CipherCraft.utils.Generators.keyGenerator import KeyGenerator
-from unittest.mock import patch
+from CipherCraft.utils.keyValidator import KeyValidator
+import CipherCraft.utils.enums.preference as pr
+
+validator = KeyValidator()
+generator = KeyGenerator()
 
 
 def test_transposition_key():
-    # CONTROLLING THE BEHAVIOR OF THE MOCKED FUNCTION
-    with patch("CipherCraft.utils.Generators.keyGenerator.random.randint", return_value=5):
-        key = KeyGenerator().Classic.transposition_key(min_r=1, max_r=10)
-        assert key == 5
-
+    key = generator.Classic.transposition_key()
+    assert validator.validate(pr.Actions.CLASSIC.__name__(),
+                              pr.ClassicAlgorithms.TRANSPOSITION.__name__(),
+                              key)

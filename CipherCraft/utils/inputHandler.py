@@ -41,7 +41,7 @@ class InputHandler:
 
         # DIGITS ONLY PATTERN
         regex = r'^[0-9]+$'
-        return InputHandler.input_validation(user_input, regex)
+        return InputHandler.input_validation(str(user_input), regex)
 
     @staticmethod
     def is_valid_integer(user_input) -> bool:
@@ -136,6 +136,7 @@ class InputHandler:
         :param key_matrix: 2D matrix.
         :return: True if the key matrix is a valid Hill cipher key, False otherwise.
         """
+
         for elm in key_matrix:
             if (len(elm) != len(key_matrix)):
                 return False
@@ -160,9 +161,9 @@ class InputHandler:
             return False
 
     @staticmethod
-    def validate_rsa_tuple(key):
+    def validate_rsa_list(key):
         a, b = key
-        return isinstance(key, tuple) and b > a > 0
+        return isinstance(key, list) and a > b > 0
 
     @staticmethod
     def is_base64_encoded(text):

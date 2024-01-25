@@ -21,7 +21,7 @@ class FilesHandler:
             with open(src, 'r') as file:
 
                 # READING LINES
-                content = file.readlines()
+                content = ''.join(file.readlines())
         except Exception as e:
 
             # ERROR OCCURRED

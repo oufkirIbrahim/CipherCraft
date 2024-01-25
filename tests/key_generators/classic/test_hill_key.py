@@ -1,10 +1,13 @@
 from CipherCraft.utils.Generators.keyGenerator import KeyGenerator
-from unittest.mock import patch
+from CipherCraft.utils.keyValidator import KeyValidator
+import CipherCraft.utils.enums.preference as pr
+
+validator = KeyValidator()
+generator = KeyGenerator()
 
 
 def test_hill_key():
-    # CONTROLLING THE BEHAVIOR OF THE MOCKED FUNCTION
-    with patch("CipherCraft.utils.Generators.keyGenerator.random.randint", return_value=2):
-        key_matrix = KeyGenerator().Classic.hill_key(m=2, n=5)
-        assert len(key_matrix) == 2
-        assert len(key_matrix[0]) == 2
+    key = generator.Classic.hill_key()
+    assert validator.validate(pr.Actions.CLASSIC.__name__(),
+                              pr.ClassicAlgorithms.HILL.__name__(),
+                              key)

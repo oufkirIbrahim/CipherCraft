@@ -11,6 +11,11 @@ def notice(message):
     return f"{Fore.YELLOW}{Style.BRIGHT}[NOTICE] {message}{Style.RESET_ALL}"
 
 
+def message(message):
+    """Return a notice-styled message."""
+    return f"{Fore.LIGHTBLUE_EX}{Style.BRIGHT}{message}{Style.RESET_ALL}"
+
+
 def comment(message):
     """Return a notice-styled message."""
     return f"{Fore.MAGENTA}{Style.BRIGHT}[SYNTAX] {message}{Style.RESET_ALL}"
@@ -18,7 +23,7 @@ def comment(message):
 
 def warning(message):
     """Return a warning-styled message."""
-    return f"{Fore.YELLOW}{Style.BRIGHT}[WARNING] {message}{Style.RESET_ALL}"
+    return f"{Fore.LIGHTYELLOW_EX}{Style.BRIGHT}[WARNING] {message}{Style.RESET_ALL}"
 
 
 def error(message):

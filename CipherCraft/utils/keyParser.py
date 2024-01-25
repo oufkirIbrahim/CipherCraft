@@ -9,7 +9,7 @@ class KeyParser:
     def parse_string(self, str_key):
         """Function To Parse String"""
         try:
-            return str(str_key)
+            return str_key
         except Exception as e:
             self.error_log.error_log(e)
             return None
@@ -77,6 +77,6 @@ class KeyParser:
     def parse_rsa(self, str_key):
         """Function To Parse RSA Cipher Key"""
         try:
-            return tuple([int(i) for i in str_key.split(',')])
+            return list([int(i) for i in str_key.split(',')])
         except Exception as e:
             return self.parse_string(str_key)
